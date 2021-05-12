@@ -21,7 +21,7 @@ def resource_path():
     return os.path.join(base_path)
 
 
-def main(remote_name):
+def main(remote_name, just_check):
     arh = ' ARH is not defined'
     try:
         conn = MYSMB(remote_name, '445')
@@ -70,6 +70,8 @@ def main(remote_name):
         print('[-] The target is patched')
         print('[*] Done --------------------------------------------------------------')
         vuln_ip = 0
+    if just_check == 1:
+        vuln_ip = 0
     conn.disconnect_tree(tid)
     conn.logoff()
     conn.get_socket().close()
@@ -92,7 +94,10 @@ def main(remote_name):
 
 
 f = open('C:\\Windows\\Temp\\check_log.txt', 'a')
-if len(sys.argv) == 2:  # если аргумент не один, то на хуй
+just_check = 0
+if len(sys.argv) == 2 or len(sys.argv) == 3:  # если аргумент не один и не 2, то на хуй
+    if len(sys.argv) == 3:  # если аргументов 2, то без хака, только check
+        just_check = 1
     for addr in ipaddress.IPv4Network(str(sys.argv[1])):  # ip or .0/24 etc
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(.5)
@@ -103,7 +108,7 @@ if len(sys.argv) == 2:  # если аргумент не один, то на х�
             sys.exit()
         if result == 0:
             print(str(addr) + ' port OPEN  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
-            main(str(addr))  # если 445 открыт, то main
+            main(str(addr), just_check)  # если 445 открыт, то main
         else:
             print(str(addr) + ' ---')
         sock.close()
